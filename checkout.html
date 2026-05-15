@@ -184,39 +184,56 @@ document.addEventListener("DOMContentLoaded", function () {
 
 <script>
 async function goToPayment() {
-  const email = document.getElementById("email").value;
-  const phone = document.getElementById("phone").value;
 
+  const email =
+    document.getElementById("email").value;
+
+  const phone =
+    document.getElementById("phone").value;
+
+  // validation
   if (!email || !phone) {
+
     alert("Please enter email and phone number");
+
     return;
   }
 
   try {
-    // Step 1: Create order from backend
-    const res = await fetch("https://money-hustle-backend.onrender.com/create-order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, phone })
-    });
+
+    // STEP 1: CREATE ORDER
+    const res = await fetch(
+      "https://money-hustle-backend.onrender.com/create-order",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          email,
+          phone
+        })
+      }
+    );
 
     const order = await res.json();
 
-    // Step 2: Open Razorpay checkout
+    // STEP 2: OPEN RAZORPAY
     const options = {
-      key: "rzp_test_Snwn2wHA97cptB", // replace this
-      amount: order.amount,
-      currency: "INR",
-      name: "Money Hustle",
-      description: "Ebook Purchase",
-      order_id: order.id,
 
-      handler: function (response) {
-        // payment success (frontend side)
-        window.location.href = "payment_success.html";
-      },
+      key: "rzp_live_SpeFLQncxbN07z",
+
+      amount: order.amount,
+
+      currency: order.currency,
+
+      name: "Money Hustle",
+
+      description: "Ebook Purchase",
+
+      order_id: order.id,
 
       prefill: {
         email: email,
@@ -225,19 +242,102 @@ async function goToPayment() {
 
       theme: {
         color: "#22c55e"
+      },
+
+      // STEP 3: PAYMENT SUCCESS
+      handler: async function (response) {
+
+        try {
+
+          // VERIFY PAYMENT
+          const verifyRes = await fetch(
+            "https://money-hustle-backend.onrender.com/verify-payment",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type": "application/json"
+              },
+
+              body: JSON.stringify({
+                razorpay_order_id:
+                  response.razorpay_order_id,
+
+                razorpay_payment_id:
+                  response.razorpay_payment_id,
+
+                razorpay_signature:
+                  response.razorpay_signature
+              })
+            }
+          );
+
+          const verifyData =
+            await verifyRes.json();
+
+          // SUCCESS
+          if (verifyData.success) {
+
+            window.location.href =
+              "payment_success.html";
+
+          } else {
+
+            alert(
+              "Payment verification failed"
+            );
+          }
+
+        } catch (err) {
+
+          console.error(err);
+
+          alert(
+            "Verification failed. Contact support."
+          );
+        }
+      },
+
+      modal: {
+
+        ondismiss: function () {
+
+          console.log(
+            "Payment popup closed"
+          );
+        }
       }
     };
 
     const rzp = new Razorpay(options);
+
+    // PAYMENT FAILED
+    rzp.on(
+      "payment.failed",
+
+      function (response) {
+
+        console.error(
+          response.error
+        );
+
+        alert(
+          "Payment failed. Please try again."
+        );
+      }
+    );
+
     rzp.open();
 
   } catch (err) {
+
     console.error(err);
-    alert("Payment failed. Try again.");
+
+    alert(
+      "Something went wrong. Try again."
+    );
   }
 }
 </script>
-
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 </body></html>
