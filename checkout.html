@@ -180,8 +180,6 @@ document.addEventListener("DOMContentLoaded", function () {
     </div>
   </footer>
 
-<qb-toolbar contenteditable="false" id="qb-toolbar-container" style="display: none;"><qb-div class="qb-toolbar__wrapper" style="left: 318px; position: absolute !important; top: 667px !important; bottom: auto !important; z-index: auto; opacity: 1 !important; pointer-events: all !important;"><div style="all: initial !important;"><qb-div style="all: initial !important;"></qb-div></div></qb-div></qb-toolbar><qb-toolbar contenteditable="false" id="qb-toolbar-container" style="display: none;"><qb-div class="qb-toolbar__wrapper" style="left: 318px; position: absolute !important; top: 1595px !important; bottom: auto !important; z-index: auto; opacity: 1 !important; pointer-events: all !important;"><div style="all: initial !important;"><qb-div style="all: initial !important;"></qb-div></div></qb-div></qb-toolbar><qb-toolbar contenteditable="false" id="qb-toolbar-container" style="display: none;"><qb-div class="qb-toolbar__wrapper" style="left: 318px; position: absolute !important; top: 1627px !important; bottom: auto !important; z-index: auto; opacity: 1 !important; pointer-events: all !important;"><div style="all: initial !important;"><qb-div style="all: initial !important;"></qb-div></div></qb-div></qb-toolbar><qb-toolbar contenteditable="false" id="qb-toolbar-container" style="display: none;"><qb-div class="qb-toolbar__wrapper" style="left: 318px; position: absolute !important; top: 1659px !important; bottom: auto !important; z-index: auto; opacity: 1 !important; pointer-events: all !important;"><div style="all: initial !important;"><qb-div style="all: initial !important;"></qb-div></div></qb-div></qb-toolbar>
-
 <script>
 async function goToPayment() {
 
@@ -198,6 +196,21 @@ async function goToPayment() {
 
     return;
   }
+
+if (!/^\S+@\S+\.\S+$/.test(email)) {
+
+  alert("Please enter a valid email");
+
+  return;
+}
+
+if (!/^[0-9]{10}$/.test(phone)) {
+
+  alert("Please enter a valid 10-digit phone number");
+
+  return;
+}
+
 
   try {
 
@@ -219,6 +232,13 @@ async function goToPayment() {
     );
 
     const order = await res.json();
+
+if (!res.ok) {
+
+  alert(order.error || "Failed to create order");
+
+  return;
+}
 
     // STEP 2: OPEN RAZORPAY
     const options = {
@@ -339,5 +359,5 @@ async function goToPayment() {
   }
 }
 </script>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </body></html>
