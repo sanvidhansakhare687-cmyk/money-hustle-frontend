@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0812" />
+<title>Secure Checkout — Money Hustle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500&family=Lora:ital,wght@0,400;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+img, svg, canvas, video { display: block; max-width: 100%; }
+
+a, button, [role="button"], input, label, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════ */
+:root {
+  --bg:       #0A0812;
+  --bg2:      #0e0b1f;
+  --surface:  rgba(28, 22, 80, 0.75);
+  --border:   rgba(168, 85, 247, 0.18);
+  --purple:   #6D28D9;
+  --glow:     #A855F7;
+  --gold:     #F0C14B;
+  --green:    #22C55E;
+  --red:      #EF4444;
+  --text:     #E8E0FF;
+  --muted:    rgba(232, 224, 255, 0.5);
+  --dim:      rgba(232, 224, 255, 0.28);
+
+  /* Spacing scale */
+  --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;
+  --sp-4: 16px;  --sp-5: 20px;  --sp-6: 24px;
+  --sp-7: 28px;  --sp-8: 32px;  --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px;
+
+  /* Layout */
+  --page-px:    16px;
+  --max-w:      1040px;
+  --radius-sm:  8px;
+  --radius-md:  14px;
+  --radius-lg:  20px;
+}
+
+/* ═══════════════════════════════════════════════════
+   BODY / GLOBAL
+═══════════════════════════════════════════════════ */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Lora', Georgia, serif;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  /* safe-area for notch phones */
+  padding-left:  env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Grain texture */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 9999; opacity: 0.35;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--purple); border-radius: 2px; }
+
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════════ */
+@keyframes fadeUp    { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn    { from { opacity:0; } to { opacity:1; } }
+@keyframes slideL    { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:translateX(0); } }
+@keyframes slideR    { from { opacity:0; transform:translateX( 24px); } to { opacity:1; transform:translateX(0); } }
+@keyframes goldShimmer { 0% { background-position:200% center; } 100% { background-position:-200% center; } }
+@keyframes shimmer   { from { left:-80%; } to { left:160%; } }
+@keyframes lockFloat { 0%,100% { transform:translateY(0)  rotateX(2deg); } 50% { transform:translateY(-14px) rotateX(2deg); } }
+@keyframes ringPulse { 0% { transform:scale(1);   opacity:.5; } 100% { transform:scale(1.9); opacity:0; } }
+@keyframes spinRing  { to { transform:rotate(360deg); } }
+@keyframes glowPulse { 0%,100% { opacity:.6; transform:translateX(-50%) scaleX(1); } 50% { opacity:1; transform:translateX(-50%) scaleX(1.2); } }
+@keyframes progFill  { from { transform:scaleX(0); } to { transform:scaleX(1); } }
+@keyframes bookFloat { 0%,100% { transform:rotateY(-16deg) rotateX(5deg) translateY(0); } 50% { transform:rotateY(-16deg) rotateX(5deg) translateY(-8px); } }
+
+/* ── Reveal utility ── */
+.reveal { opacity:0; transform:translateY(28px); transition:opacity .65s ease, transform .65s ease; }
+.reveal.in { opacity:1; transform:none; }
+
+/* ═══════════════════════════════════════════════════
+   §00  TOPBAR / BRAND
+═══════════════════════════════════════════════════ */
+.topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-5) var(--page-px);
+  gap: var(--sp-3);
+}
+.topbar::before, .topbar::after {
+  content: '';
+  flex: 1;
+  max-width: 48px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(240,193,75,.5));
+}
+.topbar::after { background: linear-gradient(to left, transparent, rgba(240,193,75,.5)); }
+
+.brand-link {
+  text-decoration: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(20px, 5vw, 32px);
+  letter-spacing: 7px;
+  background: linear-gradient(100deg, #7a5500 0%, #c8860c 14%, #f0c14b 28%, #fff0a0 48%, #f0c14b 62%, #c8860c 76%, #f0c14b 88%, #7a5500 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 4s linear infinite, fadeUp .6s .1s both;
+  filter: drop-shadow(0 0 10px rgba(240,193,75,.45));
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   §01  HERO  — mobile-first
+═══════════════════════════════════════════════════ */
+#hero {
+  position: relative;
+  overflow: hidden;
+  padding: 80px var(--page-px) 52px;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+}
+
+/* Ambient background */
+#hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 130% 55% at 50% 20%, rgba(109,40,217,.28) 0%, transparent 68%),
+    radial-gradient(ellipse  70% 45% at 15% 85%, rgba(168,85,247,.13) 0%, transparent 60%),
+    radial-gradient(ellipse  80% 50% at 85% 80%, rgba(240,193,75,.06) 0%, transparent 55%),
+    var(--bg);
+}
+
+#particles { position: absolute; inset: 0; pointer-events: none; }
+
+/* ── Inner: stacks vertically on mobile ── */
+.hero-inner {
+  position: relative; z-index: 2;
+  width: 100%; max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-10);
+}
+
+/* ── Copy block ── */
+.hero-copy {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 3.5px;
+  color: var(--glow);
+  margin-bottom: var(--sp-4);
+  animation: slideL .7s .2s both;
+}
+
+.hero-h1 {
+  line-height: .88;
+  margin-bottom: var(--sp-5);
+}
+.hero-h1 .l1 {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(56px, 18vw, 112px);
+  color: #fff;
+  animation: slideL .75s .35s both;
+}
+.hero-h1 .l2 {
+  display: block;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(56px, 18vw, 112px);
+  color: var(--glow);
+  -webkit-text-stroke: 2px var(--glow);
+  -webkit-text-fill-color: transparent;
+  animation: slideR .75s .5s both;
+}
+
+.hero-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.75;
+  max-width: 360px;
+  margin-bottom: var(--sp-6);
+  animation: fadeUp .8s .75s both;
+}
+
+/* Pill badges */
+.hero-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+  animation: fadeUp .8s .9s both;
+}
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  background: rgba(28,22,80,.65);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.pill svg { width: 10px; height: 10px; flex-shrink: 0; color: var(--glow); }
+
+/* ── Lock visual ── */
+.hero-lock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeUp .9s .65s both;
+}
+
+.lock-scene { position: relative; display: flex; align-items: center; justify-content: center; }
+
+/* Pulse rings */
+.lock-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(168,85,247,.3);
+  width: 140px; height: 140px;
+  top: 50%; left: 50%;
+  margin: -70px 0 0 -70px;
+  pointer-events: none;
+}
+.lock-ring-1 { animation: ringPulse 2.6s ease-out infinite; }
+.lock-ring-2 { animation: ringPulse 2.6s ease-out .9s infinite; }
+
+.lock-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  animation: lockFloat 4.5s ease-in-out infinite;
+  transition: transform .1s ease;
+}
+
+.lock-orbit {
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  border: 1px dashed rgba(168,85,247,.14);
+  animation: spinRing 16s linear infinite;
+  pointer-events: none;
+}
+
+.lock-svg {
+  width: 120px; height: 148px;
+  filter: drop-shadow(0 0 20px rgba(168,85,247,.55));
+  display: block;
+}
+
+.lock-glow {
+  position: absolute;
+  bottom: -20px; left: 50%;
+  transform: translateX(-50%);
+  width: 110px; height: 28px;
+  background: radial-gradient(ellipse, rgba(168,85,247,.75), transparent 70%);
+  filter: blur(12px);
+  animation: glowPulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   §02  CHECKOUT MAIN  — mobile-first
+═══════════════════════════════════════════════════ */
+#checkout-main {
+  background: var(--bg2);
+  padding: var(--sp-10) var(--page-px) var(--sp-16);
+}
+
+.checkout-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-7);
+}
+
+/* ── Progress stepper ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto var(--sp-7);
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.step-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px; font-weight: 700;
+}
+.step-dot.done {
+  background: rgba(34,197,94,.14);
+  border: 1px solid rgba(34,197,94,.4);
+  color: var(--green);
+}
+.step-dot.active {
+  background: var(--gold); color: #0A0812;
+  box-shadow: 0 0 0 4px rgba(240,193,75,.18), 0 0 20px rgba(240,193,75,.5);
+}
+.step-dot.pending {
+  background: rgba(28,22,80,.8);
+  border: 1px solid rgba(168,85,247,.2);
+  color: var(--dim);
+}
+.step-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 7px; letter-spacing: 1.5px;
+  color: var(--muted); white-space: nowrap;
+}
+.step-line {
+  flex: 1; height: 1px;
+  background: rgba(168,85,247,.15);
+  margin-bottom: 18px;
+  position: relative; overflow: hidden;
+  min-width: 28px;
+}
+.step-line.done::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: rgba(34,197,94,.5);
+  transform-origin: left;
+  animation: progFill .5s .2s ease both;
+}
+
+/* ── Section card ── */
+.form-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-6) var(--sp-5);
+  transition: border-color .3s ease, box-shadow .3s ease;
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .6s ease, transform .6s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.form-card.in { opacity: 1; transform: none; }
+.form-card:hover { border-color: rgba(168,85,247,.32); box-shadow: 0 6px 36px rgba(168,85,247,.1); }
+
+.card-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: 3.5px;
+  color: var(--glow);
+  margin-bottom: var(--sp-5);
+  display: flex; align-items: center; gap: var(--sp-3);
+}
+.card-title::after { content:''; flex:1; height:1px; background:rgba(168,85,247,.2); }
+
+/* ── Form layout ── */
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.field-row:last-child { margin-bottom: 0; }
+.field-row.two-col { flex-direction: column; }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.f-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: 2px;
+  color: var(--muted);
+}
+
+.f-input {
+  background: rgba(10,8,18,.6);
+  border: 1px solid rgba(168,85,247,.2);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  min-height: 48px;
+  transition: border-color .25s ease, box-shadow .25s ease, transform .2s ease;
+  -webkit-appearance: none;
+}
+.f-input::placeholder { color: rgba(232,224,255,.16); }
+.f-input:focus {
+  border-color: var(--glow);
+  box-shadow: 0 0 0 3px rgba(168,85,247,.14), 0 4px 18px rgba(168,85,247,.16);
+  transform: translateY(-1px);
+}
+
+/* ── Submit block ── */
+.submit-wrap { margin-top: var(--sp-2); }
+
+.btn-submit {
+  display: block; width: 100%;
+  padding: 17px 24px; min-height: 54px;
+  background: var(--gold); color: #0A0812;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: 2.5px;
+  border: none; border-radius: var(--radius-sm);
+  cursor: pointer; text-align: center;
+  position: relative; overflow: hidden;
+  transition: box-shadow .3s ease, transform .2s ease, background .3s ease, color .3s ease;
+}
+.btn-submit::after {
+  content: '';
+  position: absolute; top:0; left:-80%;
+  width: 55%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.32), transparent);
+  animation: shimmer 3s 1.8s infinite;
+}
+.btn-submit:hover:not(:disabled) {
+  box-shadow: 0 0 0 2px var(--gold), 0 12px 44px rgba(240,193,75,.45);
+  transform: translateY(-1px);
+}
+.btn-submit:active { transform: translateY(0); }
+.btn-submit.loading { background: rgba(168,85,247,.22); border:1px solid rgba(168,85,247,.38); color:var(--text); }
+.btn-submit.success { background: rgba(34,197,94,.16); border:1px solid rgba(34,197,94,.38); color:var(--green); }
+
+/* ── Price span inside submit button ── */
+.btn-price {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.secure-note {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: var(--sp-3);
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: 1.5px;
+  color: var(--dim);
+  text-align: center;
+}
+.secure-note svg { width: 11px; height: 11px; color: var(--green); flex-shrink: 0; }
+
+/* ── Order summary ── */
+.summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-6) var(--sp-5);
+  opacity: 0; transform: translateY(24px);
+  transition: opacity .6s ease .18s, transform .6s ease .18s;
+}
+.summary-card.in { opacity:1; transform:none; }
+
+/* ── Ebook cover image (replaces 3D book) ── */
+.book-wrap {
+  display: flex; justify-content: center;
+  margin-bottom: var(--sp-6);
+}
+.book-scene { position: relative; }
+.book-img-wrap { position: relative; display: inline-block; }
+.book-cover-img {
+  width: 150px;
+  height: auto;
+  border-radius: 4px 10px 10px 4px;
+  box-shadow:
+    -6px 6px 0 rgba(0,0,0,0.5),
+    0 20px 60px rgba(168,85,247,.55),
+    0 8px 24px rgba(0,0,0,.6);
+  animation: bookFloat 5.5s ease-in-out infinite;
+  display: block;
+}
+.b-glow {
+  position:absolute; bottom:-16px; left:50%;
+  transform:translateX(-50%);
+  width:90px; height:22px;
+  background:radial-gradient(ellipse, rgba(168,85,247,.7), transparent 70%);
+  filter:blur(9px);
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.sum-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 3px;
+  color: #fff; text-align: center; margin-bottom: 3px;
+}
+.sum-sub {
+  font-family: 'Lora', serif; font-size: 12px;
+  color: var(--muted); font-style: italic;
+  text-align: center; margin-bottom: var(--sp-5);
+}
+
+.divider { height:1px; background:rgba(168,85,247,.15); margin: var(--sp-4) 0; }
+
+.price-row { display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--sp-2); }
+.pr-label { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:2px; color:var(--muted); }
+.pr-val   { font-family:'Inter',sans-serif; font-size:12px; color:var(--text); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+.pr-val.strike { text-decoration:line-through; color:var(--dim); }
+.pr-val.gold   { color:var(--gold); font-size:13px; }
+
+.total-row {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top: var(--sp-4); padding-top: var(--sp-4);
+  border-top:1px solid rgba(168,85,247,.22);
+}
+.total-label { font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:3px; color:#fff; }
+.total-val   { font-family:'Inter',sans-serif; font-size:34px; font-weight:700; letter-spacing:1px; color:var(--gold); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+
+/* Feature list */
+.features { margin-top: var(--sp-5); display:flex; flex-direction:column; gap:10px; }
+.feat {
+  display:flex; align-items:flex-start; gap:10px;
+  font-size:13px; color:var(--muted); line-height:1.6;
+}
+.feat svg { width:13px; height:13px; color:var(--green); flex-shrink:0; margin-top:3px; }
+
+/* Trust badges */
+.trust-row { margin-top: var(--sp-5); display:flex; gap: var(--sp-2); flex-wrap:wrap; }
+.t-badge {
+  flex:1; min-width:60px;
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding: 10px 5px;
+  background: rgba(10,8,18,.5);
+  border: 1px solid rgba(168,85,247,.12);
+  border-radius: 10px; text-align:center;
+  transition: border-color .3s ease;
+}
+.t-badge:hover { border-color:rgba(168,85,247,.3); }
+.t-badge svg { width:17px; height:17px; color:var(--glow); }
+.t-badge-txt { font-family:'Space Mono',monospace; font-size:6.5px; letter-spacing:1px; color:var(--muted); line-height:1.5; }
+
+/* ═══════════════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════════════ */
+#footer {
+  background: var(--bg);
+  border-top: 1px solid rgba(168,85,247,.1);
+  padding: var(--sp-6) var(--page-px);
+  padding-bottom: calc(var(--sp-6) + env(safe-area-inset-bottom));
+}
+.footer-inner {
+  max-width: var(--max-w); margin: 0 auto;
+  display: flex; flex-direction: column;
+  align-items: center; gap: var(--sp-3);
+  text-align: center;
+}
+.footer-copy { font-family:'Inter',sans-serif; font-size:9px; font-weight:500; letter-spacing:1px; color:var(--muted); }
+.footer-nav { display:flex; align-items:center; gap: var(--sp-3); flex-wrap:wrap; justify-content:center; }
+.footer-link { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); text-decoration:none; transition:color .2s ease; }
+.footer-link:hover { color:var(--glow); }
+.footer-dot { color:rgba(168,85,247,.4); }
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: 480px
+═══════════════════════════════════════════════════ */
+@media (min-width: 480px) {
+  :root { --page-px: 24px; }
+  .field-row.two-col { flex-direction: row; }
+  .stepper { max-width: 360px; }
+  .hero-pills { gap: var(--sp-3); }
+}
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: 640px
+═══════════════════════════════════════════════════ */
+@media (min-width: 640px) {
+  :root { --page-px: 32px; }
+  .lock-svg { width: 136px; height: 168px; }
+  .lock-ring { width: 160px; height: 160px; margin: -80px 0 0 -80px; }
+  .hero-copy { max-width: 480px; }
+  .form-card { padding: var(--sp-7) var(--sp-7); }
+  .summary-card { padding: var(--sp-7) var(--sp-7); }
+}
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: 800px
+═══════════════════════════════════════════════════ */
+@media (min-width: 800px) {
+  :root { --page-px: 40px; }
+  #hero {
+    min-height: 88svh;
+    padding: 88px var(--page-px) 60px;
+  }
+  .hero-inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 56px;
+    padding-top: 0;
+  }
+  .hero-copy {
+    flex: 1.25;
+    align-items: flex-start;
+    text-align: left;
+    max-width: none;
+  }
+  .hero-sub { margin-left:0; }
+  .hero-pills { justify-content: flex-start; }
+  .hero-lock {
+    flex: 1;
+    justify-content: center;
+  }
+  .checkout-wrap {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .form-col { flex: 1.3; min-width: 0; }
+  .summary-col { flex: 1; min-width: 0; }
+  .summary-card {
+    position: sticky;
+    top: var(--sp-7);
+  }
+  .stepper { margin-left: 0; }
+}
+
+/* ═══════════════════════════════════════════════════
+   BREAKPOINT: 1024px
+═══════════════════════════════════════════════════ */
+@media (min-width: 1024px) {
+  :root { --page-px: 56px; }
+  #hero { padding: 96px var(--page-px) 64px; }
+  #checkout-main { padding: var(--sp-16) var(--page-px); }
+  .hero-inner { gap: 72px; }
+  .form-card { padding: var(--sp-8) var(--sp-8); }
+  .summary-card { padding: var(--sp-8) var(--sp-8); }
+}
+
+/* ═══════════════════════════════════════════════════
+   REDUCED MOTION
+═══════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .form-card, .summary-card, .stepper, .reveal { opacity:1 !important; transform:none !important; }
+}
+</style>
+</head>
+<body>
+
+<section id="hero">
+  <div id="hero-bg"></div>
+  <canvas id="particles"></canvas>
+
+  <nav class="topbar" aria-label="Site">
+    <a href="homepage.html" class="brand-link">MONEY HUSTLE</a>
+  </nav>
+
+  <div class="hero-inner">
+
+    <div class="hero-lock" id="lockWrap" aria-hidden="true">
+      <div class="lock-scene">
+        <div class="lock-ring lock-ring-1"></div>
+        <div class="lock-ring lock-ring-2"></div>
+        <div class="lock-3d" id="lock3d">
+          <div class="lock-orbit"></div>
+          <svg class="lock-svg" viewBox="0 0 140 172" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="bGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#1C1650"/>
+                <stop offset="50%"  stop-color="#110D2E"/>
+                <stop offset="100%" stop-color="#0A0812"/>
+              </linearGradient>
+              <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%"   stop-color="#7a5500"/>
+                <stop offset="30%"  stop-color="#f0c14b"/>
+                <stop offset="58%"  stop-color="#fff0a0"/>
+                <stop offset="100%" stop-color="#c8860c"/>
+              </linearGradient>
+              <linearGradient id="shine" x1="0%" y1="0%" x2="55%" y2="100%">
+                <stop offset="0%"   stop-color="rgba(168,85,247,0.1)"/>
+                <stop offset="100%" stop-color="rgba(168,85,247,0)"/>
+              </linearGradient>
+              <linearGradient id="side" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%"   stop-color="#040210"/>
+                <stop offset="100%" stop-color="#1C1650"/>
+              </linearGradient>
+              <filter id="gfx" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="2.5" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <rect x="5" y="90" width="8" height="72" rx="3" fill="url(#side)" opacity=".5"/>
+            <path d="M43 88V48A27 27 0 0 1 97 48V88" fill="none" stroke="rgba(0,0,0,.5)" stroke-width="14" stroke-linecap="round" transform="translate(3,4)"/>
+            <path d="M43 88V48A27 27 0 0 1 97 48V88" fill="none" stroke="url(#gGrad)" stroke-width="12" stroke-linecap="round" filter="url(#gfx)"/>
+            <path d="M43 88V48A27 27 0 0 1 97 48V88" fill="none" stroke="rgba(255,244,160,.2)" stroke-width="4" stroke-linecap="round"/>
+            <rect x="13" y="85" width="114" height="76" rx="13" fill="rgba(0,0,0,.4)" transform="translate(3,3)"/>
+            <rect x="13" y="85" width="114" height="76" rx="13" fill="url(#bGrad)"/>
+            <rect x="13" y="85" width="114" height="76" rx="13" fill="none" stroke="rgba(168,85,247,.3)" stroke-width="1.5"/>
+            <rect x="13" y="85" width="114" height="5" rx="3" fill="rgba(168,85,247,.16)"/>
+            <rect x="15" y="87" width="52" height="72" rx="12" fill="url(#shine)"/>
+            <line x1="28" y1="100" x2="28" y2="150" stroke="rgba(168,85,247,.06)" stroke-width="1"/>
+            <line x1="112" y1="100" x2="112" y2="150" stroke="rgba(168,85,247,.06)" stroke-width="1"/>
+            <line x1="20" y1="132" x2="120" y2="132" stroke="rgba(168,85,247,.04)" stroke-width="1"/>
+            <circle cx="70" cy="115" r="14" fill="rgba(109,40,217,.12)" stroke="rgba(168,85,247,.35)" stroke-width="1.5"/>
+            <circle cx="70" cy="111" r="8"  fill="rgba(109,40,217,.45)" filter="url(#gfx)"/>
+            <circle cx="70" cy="111" r="6"  fill="rgba(168,85,247,.65)"/>
+            <rect   x="66" y="117" width="8" height="13" rx="3" fill="rgba(168,85,247,.55)"/>
+            <circle cx="70" cy="111" r="2.5" fill="rgba(230,200,255,.95)"/>
+            <text x="70" y="153" text-anchor="middle" fill="rgba(168,85,247,.2)"
+                  font-family="'Space Mono',monospace" font-size="7" letter-spacing="4">SECURED</text>
+          </svg>
+        </div>
+        <div class="lock-glow"></div>
+      </div>
+    </div>
+
+    <div class="hero-copy">
+      <p class="hero-eyebrow">THE CHAIR ON THE FLOOR </p>
+      <h1 class="hero-h1">
+        <span class="l1">SECURE</span>
+        <span class="l2">CHECKOUT</span>
+      </h1>
+      <p class="hero-sub">One decision separates the runner from the owner. Your upgrade is one payment away.</p>
+      <div class="hero-pills">
+        <div class="pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          SSL SECURE
+        </div>
+        <div class="pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          ENCRYPTED
+        </div>
+        <div class="pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          INSTANT ACCESS
+        </div>
+        <div class="pill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          60 SECONDS
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<main id="checkout-main">
+  <div class="checkout-wrap">
+
+    <div class="form-col">
+
+      <div class="stepper reveal" id="stepper">
+        <div class="step">
+          <div class="step-dot done" aria-label="Step 1 complete">&#10003;</div>
+          <span class="step-label">CART</span>
+        </div>
+        <div class="step-line done"></div>
+        <div class="step">
+          <div class="step-dot active" aria-label="Current step">2</div>
+          <span class="step-label">CHECKOUT</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step">
+          <div class="step-dot pending" aria-label="Step 3 pending">3</div>
+          <span class="step-label">ACCESS</span>
+        </div>
+      </div>
+
+      <div class="form-card" id="cardDetails">
+        <div class="card-title">&mdash; YOUR DETAILS</div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="f-label" for="email">EMAIL ADDRESS</label>
+            <input type="email" id="email" class="f-input" placeholder="example@email.com" autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label class="f-label" for="phone">PHONE NUMBER</label>
+            <input type="tel" id="phone" class="f-input" placeholder="+91 98765 43210" autocomplete="tel" />
+          </div>
+        </div>
+      </div>
+
+      <div class="submit-wrap">
+        <button class="btn-submit" id="submitBtn" type="button" onclick="goToPayment()">
+          COMPLETE PURCHASE &mdash; <span class="btn-price">&#8377;49</span>
+        </button>
+        <p class="secure-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          PAY SECURLY VIA UPI/GPAY &nbsp;&#183;&nbsp; POWERED BY RAZORPAY
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="summary-col">
+      <div class="summary-card" id="summaryCard">
+
+        <div class="card-title">ORDER SUMMARY</div>
+
+        <!-- Ebook Cover Image -->
+<div class="book-wrap" aria-hidden="true">
+  <div class="book-scene">
+    <div class="book-img-wrap">
+
+      <img
+        class="book-cover-img"
+        src="cover.png"
+        alt="Chair on the floor"
+      />
+
+      <div class="b-glow"></div>
+
+    </div>
+  </div>
+</div>
+
+        <div class="sum-name">MONEY HUSTLE</div>
+        <div class="sum-sub">The Chair on The Floor</div>
+
+        <div class="divider"></div>
+
+        <div class="price-row">
+          <span class="pr-label">ORIGINAL PRICE</span>
+          <span class="pr-val strike">&#8377;499</span>
+        </div>
+        <div class="price-row">
+          <span class="pr-label">LAUNCH DISCOUNT</span>
+          <span class="pr-val gold">&minus;&#8377;450</span>
+        </div>
+
+        <div class="total-row">
+          <span class="total-label">TOTAL</span>
+          <span class="total-val">&#8377;49</span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="features">
+          <div class="feat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Full digital ebook &mdash; Instant download after payment
+          </div>
+          <div class="feat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            7 chapters frameworks
+          </div>
+          <div class="feat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Lifetime access &mdash; read on any device
+          </div>
+          <div class="feat">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            One-time payment, zero hidden fees
+          </div>
+        </div>
+
+        <div class="trust-row">
+          <div class="t-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="t-badge-txt">SSL<br>SECURE</span>
+          </div>
+          <div class="t-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span class="t-badge-txt">256-BIT<br>ENCRYPT</span>
+          </div>
+          <div class="t-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span class="t-badge-txt">INSTANT<br>ACCESS</span>
+          </div>
+          <div class="t-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span class="t-badge-txt">24/7<br>SUPPORT</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</main>
+
+
+<footer id="footer">
+  <div class="footer-inner">
+    <p class="footer-copy">&copy; 2026 Money Hustle. All rights reserved.</p>
+    <nav class="footer-nav" aria-label="Footer">
+      <a href="terms.html"   class="footer-link">Terms</a>
+      <span class="footer-dot" aria-hidden="true">&middot;</span>
+      <a href="privacy.html" class="footer-link">Privacy</a>
+      <span class="footer-dot" aria-hidden="true">&middot;</span>
+      <a href="contact.html" class="footer-link">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+
+<script>
+const isMobile  = () => window.innerWidth < 800;
+const prefersRM = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+(function initParticles() {
+  const canvas = document.getElementById('particles');
+  if (!canvas || prefersRM) return;
+  const ctx = canvas.getContext('2d');
+  let W, H;
+  const count = isMobile() ? 28 : 60;
+  const pts = Array.from({ length: count }, () => ({
+    x: Math.random() * 2000, y: Math.random() * 2000,
+    r: Math.random() * 1.6 + 0.3,
+    dx: (Math.random() - .5) * .22,
+    dy: (Math.random() - .5) * .22,
+    o: Math.random()
+  }));
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    const t = Date.now() * .001;
+    pts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x % W, p.y % H, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(168,85,247,${(0.28 + Math.sin(t + p.o * 10) * .18).toFixed(2)})`;
+      ctx.fill();
+      p.x += p.dx; p.y += p.dy;
+      if (p.x < 0) p.x += W;
+      if (p.y < 0) p.y += H;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+(function initLockTilt() {
+  if (prefersRM) return;
+  const lock3d = document.getElementById('lock3d');
+  const hero   = document.getElementById('hero');
+  if (!lock3d || !hero) return;
+  let raf;
+  function tilt(rx, ry) {
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => {
+      lock3d.style.transform  = `rotateY(${ry}deg) rotateX(${rx}deg)`;
+      lock3d.style.animation  = 'none';
+    });
+  }
+  function reset() {
+    cancelAnimationFrame(raf);
+    lock3d.style.transform  = '';
+    lock3d.style.transition = 'transform .7s ease';
+    lock3d.style.animation  = '';
+    setTimeout(() => { lock3d.style.transition = ''; }, 700);
+  }
+  hero.addEventListener('mousemove', e => {
+    if (isMobile()) return;
+    const r  = hero.getBoundingClientRect();
+    const rx = ((e.clientY - r.top  - r.height / 2) / r.height) * 13;
+    const ry = ((e.clientX - r.left - r.width  / 2) / r.width)  * -20 - 8;
+    tilt(rx, ry);
+  }, { passive: true });
+  hero.addEventListener('mouseleave', reset);
+})();
+
+(function initReveal() {
+  const els = document.querySelectorAll('.form-card, .summary-card, .stepper, .reveal');
+  const io  = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.form-card').forEach((el, i) => {
+    el.style.transitionDelay = `${i * 0.1}s`;
+  });
+  els.forEach(el => io.observe(el));
+})();
+</script>
+
+<script>
+async function goToPayment() {
+  const email = document.getElementById("email").value;
+  const phone = document.getElementById("phone").value.trim();
+  const cleanPhone = phone.replace(/\s+/g, "");
+  if (!email || !phone) { alert("Please enter email and phone number"); return; }
+  if (!/^\S+@\S+\.\S+$/.test(email)) { alert("Please enter a valid email"); return; }
+  if (!/^(?:\+91)?[6-9]\d{9}$/.test(cleanPhone)) { alert("Please enter a valid phone number"); return; }
+  try {
+    const res = await fetch("https://money-hustle-backend.onrender.com/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, phone: cleanPhone })
+    });
+    const order = await res.json();
+    if (!res.ok) { alert(order.error || "Failed to create order"); return; }
+    const options = {
+      key: "rzp_live_SpeFLQncxbN07z",
+      amount: order.amount,
+      currency: order.currency,
+      name: "Money Hustle",
+      description: "Ebook Purchase",
+      order_id: order.id,
+      prefill: { email: email, contact: cleanPhone },
+      theme: { color: "#22c55e" },
+      handler: async function (response) {
+        try {
+          const verifyRes = await fetch("https://money-hustle-backend.onrender.com/verify-payment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              razorpay_order_id:   response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature:  response.razorpay_signature
+            })
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.success) { window.location.href = "payment_success.html"; }
+          else { alert("Payment verification failed"); }
+        } catch (err) { console.error(err); alert("Verification failed. Contact support."); }
+      },
+      modal: { ondismiss: function () { console.log("Payment popup closed"); } }
+    };
+    const rzp = new Razorpay(options);
+    rzp.on("payment.failed", function (response) { console.error(response.error); alert("Payment failed. Please try again."); });
+    rzp.open();
+  } catch (err) { console.error(err); alert("Something went wrong. Try again."); }
+}
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+</body>
+</html>
