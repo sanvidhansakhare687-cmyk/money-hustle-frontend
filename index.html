@@ -459,14 +459,18 @@
   .ct-row.in { opacity: 1; transform: none; }
   .ct-icon {
     font-family: 'Space Mono', monospace;
-    font-size: 12px;
+    font-size: 10px;
     color: rgba(255,255,255,0.6);
-    padding: 10px 14px;
-    border-radius: 8px;
+    padding: 6px 10px;
+    border-radius: 7px;
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.06);
     text-align: center;
     letter-spacing: 2px;
+    align-self: center;
+    min-width: 80px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .ct-pill {
     padding: 12px 16px;
@@ -867,7 +871,7 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     font-size: 11px;
     font-weight: 400;
-    color: rgba(255,255,255,0.25);
+    color: rgba(255,255,255,0.45);
     letter-spacing: 0.3px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -1034,6 +1038,17 @@
     .ct-row:nth-child(even) { transform: translateX(-30px); }
     .ct-row:nth-child(odd)  { transform: translateX(30px); }
     .ct-row.in { transform: none; }
+
+    /* restore icon pill to full size on tablet/desktop */
+    .ct-icon {
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      align-self: auto;
+      min-width: unset;
+      margin-left: 0;
+      margin-right: 0;
+    }
 
     .cta-btn { display: inline-block; width: auto; }
 
